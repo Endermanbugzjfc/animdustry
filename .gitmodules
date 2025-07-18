@@ -1,4 +1,4 @@
 [submodule "fau"]
 	path = fau
 	url = https://github.com/Endermanbugzjfc/fau.git
-	branch = master
+	branch = lock

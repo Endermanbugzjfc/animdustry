@@ -1,27 +1,24 @@
 let
   nixpkgs = fetchTarball "https://github.com/NixOS/nixpkgs/tarball/nixos-unstable";
   pkgs = import nixpkgs {};
-
-  nixpkgs-lock = fetchTarball "https://github.com/NixOS/nixpkgs/archive/a71323f68d4377d12c04a5410e214495ec598d4c.tar.gz";
-  pkgs-lock = import nixpkgs-lock {};
 in pkgs.mkShellNoCC {
-  packages = [
-    pkgs.git
-    pkgs.cacert
+  packages = with pkgs; [
+    git
+    cacert
+    gcc
 
-    pkgs.nimble
-    pkgs.nim_lk
+    nimble
+    nim_lk
 
-    pkgs-lock.gcc12
-    pkgs-lock.nim
+    nim
 
-    pkgs-lock.xorg.libX11
-    pkgs-lock.xorg.libXcursor
-    pkgs-lock.xorg.libXrandr
-    pkgs-lock.xorg.libXinerama
-    pkgs-lock.xorg.libXi
-    pkgs-lock.libGL
-    pkgs-lock.xorg.libXxf86vm
+    xorg.libX11
+    xorg.libXcursor
+    xorg.libXrandr
+    xorg.libXinerama
+    xorg.libXi
+    libGL
+    xorg.libXxf86vm
   ];
 
   shellHook = ''

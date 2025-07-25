@@ -26,16 +26,17 @@ in pkgs.mkShellNoCC {
 
     if [ -d "$NIMBLE_DIR" ]; then
       export PATH="$PATH:/home/$NIMBLE_DIR/bin"
-      echo "Using env NIMBLE_DIR might cause inconsistent behaviour"
+      echo "Specifying the NIMBLE_DIR env might cause inconsistent behaviour"
 
-      if [ ! -z "$(ls $NIMBLE_DIR)" ]; then IMPURE_CACHE=true; fi
+      if [ ! -z "$(ls $NIMBLE_DIR)/pkgcache" ]; then IMPURE_CACHE=true; fi
     else
       DEFAULT_NIMBLE_DIR="/home/$(whoami)/.nimble"
       export PATH="$PATH:$DEFAULT_NIMBLE_DIR/bin"
 
-      if [ ! -z "$(ls $DEFAULT_NIMBLE_DIR)" ]; then IMPURE_CACHE=true; fi
+      if [ ! -z "$(ls $DEFAULT_NIMBLE_DIR)/pkgcache" ]; then IMPURE_CACHE=true; fi
     fi
 
     [ $IMPURE_CACHE ] && echo "Existing Nimble cache might cause inconsistent behaviour"
+    [ "$(find . -maxdepth 1 -type f | wc -l)" == "0" ] && echo "IMPORTANT: incorrect or missing submodules might cause compiler errors!"
   '';
 }

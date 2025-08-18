@@ -5,12 +5,10 @@ let
   packages = with pkgs; [
     git
     cacert
-    gcc
+    gcc # Note: this also adds the `strip` utility.
 
     nimble
     nim_lk
-
-    # nim
 
     xorg.libX11
     xorg.libXcursor
@@ -45,9 +43,16 @@ let
 
     [ "$CACHE_PATH" == "" ] || echo ${warn_cache}
     [ "$(find fau -maxdepth 1 -type f | wc -l)" == "0" ] && echo ${warn_submodules}
+
+    export LD_LIBRARY_PATH=${ with pkgs; lib.makeLibraryPath [
+        libpulseaudio
+      ]
+    }
   '';
 
   lin = with pkgs; mkShellNoCC {
+    # Note: different distributions of nim are separated across shell
+    # environments to avoid the wrong CPU backend being chosen.
     packages = packages ++ [ nim ];
 
     inherit shellHook;

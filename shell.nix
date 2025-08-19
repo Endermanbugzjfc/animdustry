@@ -19,34 +19,30 @@ let
     xorg.libXxf86vm
   ];
 
+  removeCacheAlias = "rm-nimble";
   shellHook = let
-    removeCacheAlias = "rm-nimble";
     warn_nimble_dir = "Specifying the NIMBLE_DIR env might cause inconsistent behaviour, it is currently set to: $NIMBLE_DIR";
-    warn_cache = "Inconsistent behaviour might happen because of the existing Nimble cache at $CACHE_PATH; " +
-      "To quickly delete it permanently, run: ${removeCacheAlias} (any loss are at your own risk)";
     warn_submodules = "IMPORTANT: incorrect or missing submodules might cause compiler errors!" +
       " If you are cloning with git, append \\`--recursive\\`" +
       " If you are cloning with gh, append \\`-- --recursive\\`";
   in ''
+    NIMBLE_PATH=""
     HAS_CACHE=false
     CACHE_PATH=""
 
     if [ -d "$NIMBLE_DIR" ]; then
-      export PATH="$PATH:/home/$NIMBLE_DIR/bin" echo "${warn_nimble_dir}"
-
-      CACHE_PATH="$NIMBLE_DIR/pkgcache"
-      [ -d "$CACHE_PATH" ] || HAS_CACHE=true
+      echo "${warn_nimble_dir}"
+      NIMBLE_PATH="$NIMBLE_DIR"
     else
-      DEFAULT_NIMBLE_DIR="/home/$(whoami)/.nimble"
-      export PATH="$PATH:$DEFAULT_NIMBLE_DIR/bin"
-
-      CACHE_PATH="$DEFAULT_NIMBLE_DIR/pkgcache"
-      [ -d "$CACHE_PATH" ] || HAS_CACHE=true
+      NIMBLE_PATH="/home/$(whoami)/.nimble"
     fi
+    export PATH="$PATH:$NIMBLE_PATH/bin"
+    CACHE_PATH="$NIMBLE_PATH/pkgcache"
+    [ ! -d "$CACHE_PATH" ] && HAS_CACHE=true
+
     RM="rm -rf \"$CACHE_PATH\"";
     alias ${removeCacheAlias}="echo \"$RM\" && $RM"
 
-    [ "$HAS_CACHE" == "true" ] || echo "${warn_cache}"
     [ "$(find fau -maxdepth 1 -type f | wc -l)" == "0" ] && echo "${warn_submodules}"
 
     export LD_LIBRARY_PATH=${ with pkgs; lib.makeLibraryPath [
@@ -60,7 +56,12 @@ let
     # environments to avoid the wrong CPU backend being chosen.
     packages = packages ++ [ nim ];
 
-    inherit shellHook;
+    shellHook = let
+      warn_cache = "Inconsistent behaviour might happen because of the existing Nimble cache at $CACHE_PATH; " +
+        "To quickly delete it permanently, run: \\`${removeCacheAlias}\\` (WARNING: any loss are at your own risk)";
+    in shellHook + "\n" + ''
+      [ "$HAS_CACHE" == "false" ] && echo "${warn_cache}"
+    '';
   };
 
 in {
@@ -79,7 +80,13 @@ in {
   in { wineprefix ? "~/.local/share/wineprefixes/animdustry" }: mkShellNoCC {
     packages = packages ++ cross ++ compatibility;
 
-    shellHook = shellHook + "\n" + ''
+    shellHook = let
+      warn_cross_fau = "Faupack should be compiled and installed for your host before cross-compiling Animdustry."
+        + " If you do not mean to cross-compile, please enter the default shell with: \\`nix-shell -A default\\`";
+    in shellHook + "\n" + ''
+      SYMLINK="$NIMBLE_PATH/bin/faupack"
+      [ ! -f "$(realpath --quiet $SYMLINK)" ] && echo "${warn_cross_fau}";
+
       export WINEPREFIX="$(realpath ${wineprefix})"
       export WINE="wine64"
     '';

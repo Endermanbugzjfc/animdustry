@@ -69,7 +69,9 @@ in {
   default = lin;
 
   win = with pkgs; let
-    cross = with pkgsCross.mingwW64.buildPackages; [
+    pkgs-cross = pkgsCross.mingwW64;
+
+    cross = with pkgs-cross.buildPackages; [
       gcc
       nim
     ];
@@ -89,6 +91,7 @@ in {
 
       export WINEPREFIX="$(realpath ${wineprefix})"
       export WINE="wine64"
+      export WINEPATH="${pkgs-cross.windows.mcfgthreads}/bin"
     '';
   };
 }

@@ -5,13 +5,20 @@ let
   nixpkgs-pin = fetchTarball "https://github.com/NixOS/nixpkgs/archive/a71323f68d4377d12c04a5410e214495ec598d4c.tar.gz";
   pkgs-pin = import nixpkgs-pin {};
 
+  nnl = pkgs.fetchFromGitHub {
+    repo = "nnl";
+    owner = "daylinmorgan";
+    rev = "09d6bea65bf5d39e0f1f43cb3922cca60dfeb749";
+    hash = "sha256-mEvdoYLoumAFzMKPKz4CBoBX5b7AvYu5jGQnNLzEBH0=";
+  };
+
   packages = with pkgs; [
     git
     cacert
     gcc12 # Note: this also adds the `strip` utility.
 
     nimble
-    nim_lk
+    (callPackage "${nnl}/package.nix" {})
 
     xorg.libX11
     xorg.libXcursor

@@ -7,7 +7,7 @@ bin           = @["main"]
 binDir        = "jni"
 
 requires "nim >= 1.6.2"
-requires "https://github.com/Anuken/fau#" & staticExec("git -C fau rev-parse HEAD")
+requires "https://github.com/Endermanbugzjfc/fau#" & staticExec("git -C fau rev-parse HEAD")
 requires "zippy >= 0.7.3"
 requires "flatty >= 0.2.3"
 requires "jsony >= 1.1.3"
@@ -28,7 +28,7 @@ const
   ]
 
 task pack, "Pack textures":
-  shell &"faupack -p:{getCurrentDir()}/assets-raw/sprites -o:{getCurrentDir()}/assets/atlas --outlineFolder=outlined"
+  shell &"faupack -p:\"{getCurrentDir()}\"/assets-raw/sprites -o:\"{getCurrentDir()}\"/assets/atlas --outlineFolder=outlined"
 
 task debug, "Debug build":
   shell &"nim r -d:debug src/{app}"

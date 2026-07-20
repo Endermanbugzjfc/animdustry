@@ -23,6 +23,19 @@ onEcsBuilt:
   proc makeBullet(pos: Vec2i, dir: Vec2i, tex = "bullet") =
     discard newEntityWith(DrawBullet(sprite: tex), Scaled(scl: 1f), Pos(), GridPos(vec: pos), Velocity(vec: dir), Damage())
 
+  # A `for dir in d8()/d4(): makeBullet(...)` loop directly inside a `runDelay`
+  # closure that itself sits inside another enclosing `for` loop trips Nim
+  # 2.2's lambda-lifting ICE ("internal error: no environment found" /
+  # "environment misses"). Routing the inner loop through a top-level proc
+  # keeps the runDelay closure body down to a single call and avoids it.
+  proc bulletRing8(pos: Vec2i, tex = "bullet") =
+    for dir in d8():
+      makeBullet(pos, dir, tex)
+
+  proc bulletRing4(pos: Vec2i, tex = "bullet") =
+    for dir in d4():
+      makeBullet(pos, dir, tex)
+
   proc makeTimedBullet(pos: Vec2i, dir: Vec2i, tex = "bullet", life = 3) =
     discard newEntityWith(DrawBullet(sprite: tex), Scaled(scl: 1f), Pos(), GridPos(vec: pos), Velocity(vec: dir), Damage(), Lifetime(turns: life))
 

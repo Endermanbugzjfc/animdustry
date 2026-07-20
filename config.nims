@@ -37,9 +37,15 @@ if defined(emscripten):
 
   --d:danger
 
+  # nimsoloud's SDL2 headers (soloud_sdl2_static.cpp) need to see
+  # -s USE_SDL=2 at compile time too, not just link time, or emscripten's
+  # fakesdl shim #errors out.
+  switch("passC", "-s USE_SDL=2")
+
   #extra flags for smaller sizes:
   # -s ASSERTIONS=0 -DNDEBUG -s MALLOC=emmalloc
-  switch("passL", "-o build/web/index.html --shell-file fau/res/shell_minimal.html -O3 -s LLD_REPORT_UNDEFINED -s USE_SDL=2 -s ALLOW_MEMORY_GROWTH=1 --closure 1 --preload-file assets")
+  # note: LLD_REPORT_UNDEFINED was removed in modern emscripten (now a hard link error)
+  switch("passL", "-o build/web/index.html --shell-file fau/res/shell_minimal.html -O3 -s USE_SDL=2 -s ALLOW_MEMORY_GROWTH=1 --closure 1 --preload-file assets")
 else:
 
   when defined(Windows):

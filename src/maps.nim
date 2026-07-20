@@ -1,4 +1,4 @@
-import sugar, vars, core, types, math
+import vars, core, types, math
 
 var
   map1*, map2*, map3*, map4*, map5*: Beatmap
@@ -7,7 +7,10 @@ template delayBullet*(pos: Vec2i, dir: Vec2i, tex = "") =
   let 
     p = pos
     d = dir
-  capture p, d:
+  block: # was `capture p, d` (sugar.capture's IIFE trips a Nim 2.2 lambda-lifting ICE at this nesting depth)
+    let
+      p = p
+      d = d
     runDelay:
       makeBullet(p, d, tex)
 
@@ -23,14 +26,18 @@ template laser*(pos, dir: Vec2i) =
   effectLancerAppear(pos.vec2 - dir.vec2/1.4f, life = beatSpacing() * 3f, rotation = dir.vec2.angle)
   
   let p = pos
-  capture p:
+  block: # was `capture p` (sugar.capture's IIFE trips a Nim 2.2 lambda-lifting ICE at this nesting depth)
+    let
+      p = p
     runDelayi 1:
       effectLaserShoot(p.vec2)
   
   for len in 0..(mapSize*2):
     let dest = pos + dir * len
     effectLaserWarn(dest.vec2, rotation = dir.vec2.angle, life = beatSpacing() * 2)
-    capture dest:
+    block: # was `capture dest` (sugar.capture's IIFE trips a Nim 2.2 lambda-lifting ICE at this nesting depth)
+      let
+        dest = dest
       runDelayi 1:
         makeLaser(dest, dir)
 
@@ -117,7 +124,10 @@ template createMaps* =
             for i in 0..3:
               let v = vec2(mapSize, m).rotate(i * 90f.rad).vec2i
               effectWarn(v.vec2)
-              capture v, i:
+              block: # was `capture v, i` (sugar.capture's IIFE trips a Nim 2.2 lambda-lifting ICE at this nesting depth)
+                let
+                  v = v
+                  i = i
                 runDelay:
                   makeConveyor(v, d4i[(i + 2).mod(4)], 1)
 
@@ -249,7 +259,10 @@ template createMaps* =
           if turn mod space == 0:
             let pos = state.playerPos
             for i in 0..3:
-              capture i, pos:
+              block: # was `capture i, pos` (sugar.capture's IIFE trips a Nim 2.2 lambda-lifting ICE at this nesting depth)
+                let
+                  i = i
+                  pos = pos
                 runDelayi(i):
                   effectStrikeWave(pos.vec2, rotation = i.float32, life = beatSpacing())
                   if i == 3:
@@ -423,7 +436,10 @@ template createMaps* =
               pos = vec2i(-x, 0)
             
             effectWarn(pos.vec2, life = beatSpacing())
-            capture pos, t:
+            block: # was `capture pos, t` (sugar.capture's IIFE trips a Nim 2.2 lambda-lifting ICE at this nesting depth)
+              let
+                pos = pos
+                t = t
               runDelay:
                 if (t div space).mod(2) == 0:
                   for dir in d4():
@@ -594,7 +610,9 @@ template createMaps* =
               pos = state.playerPos
               diagonal = ((turn div space).mod 2) == 0
             effectWarn(pos.vec2, life = beatSpacing() * 3)
-            capture pos:
+            block: # was `capture pos` (sugar.capture's IIFE trips a Nim 2.2 lambda-lifting ICE at this nesting depth)
+              let
+                pos = pos
               runDelayi 2:
                 makeRouter(pos.vec2i, 3, diag = diagonal)
 
@@ -607,7 +625,9 @@ template createMaps* =
           if turn mod space == 0:
             let pos = vec2i(state.playerPos.x, -mapSize)
             effectWarn(pos.vec2, life = beatSpacing() * 2)
-            capture pos:
+            block: # was `capture pos` (sugar.capture's IIFE trips a Nim 2.2 lambda-lifting ICE at this nesting depth)
+              let
+                pos = pos
               runDelayi 1:
                 makeArc(pos, vec2i(0, 1), bounces = 0)
 
@@ -621,7 +641,10 @@ template createMaps* =
               pos = vec2i(t div space) - vec2i(mapSize)
               dia = (t div space) mod 2 == 0
             effectWarn(pos.vec2, life = beatSpacing())
-            capture pos, dia:
+            block: # was `capture pos, dia` (sugar.capture's IIFE trips a Nim 2.2 lambda-lifting ICE at this nesting depth)
+              let
+                pos = pos
+                dia = dia
               runDelay:
                 makeRouter(pos, diag = dia, length = 4)
            
@@ -759,7 +782,9 @@ template createMaps* =
               d = (turn div space) mod 4
               pos = d8i[d] * 5
             effectWarn(pos.vec2, life = beatSpacing())
-            capture pos:
+            block: # was `capture pos` (sugar.capture's IIFE trips a Nim 2.2 lambda-lifting ICE at this nesting depth)
+              let
+                pos = pos
               runDelay:
                 bulletCircle(pos, "bullet-pink")
 
@@ -768,7 +793,9 @@ template createMaps* =
           if turn mod space == 0:
             let pos = vec2i(state.playerPos.x, -mapSize)
             effectWarn(pos.vec2, life = beatSpacing())
-            capture pos:
+            block: # was `capture pos` (sugar.capture's IIFE trips a Nim 2.2 lambda-lifting ICE at this nesting depth)
+              let
+                pos = pos
               runDelay:
                 makeConveyor(pos, vec2i(0, 1), 3)
 
@@ -792,16 +819,20 @@ template createMaps* =
             for dir in d8():
               let pos = dir * mapSize
               effectWarn(pos.vec2, life = beatSpacing())
-              capture pos:
+              block: # was `capture pos` (sugar.capture's IIFE trips a Nim 2.2 lambda-lifting ICE at this nesting depth)
+                let
+                  pos = pos
                 runDelay:
-                  bulletCircle(pos, "bullet-pink")
+                  bulletRing8(pos, "bullet-pink")
         
         template trackConveyorTop =
           let space = 4
           if turn mod space == 0:
             let pos = vec2i(state.playerPos.x, mapSize)
             effectWarn(pos.vec2, life = beatSpacing())
-            capture pos:
+            block: # was `capture pos` (sugar.capture's IIFE trips a Nim 2.2 lambda-lifting ICE at this nesting depth)
+              let
+                pos = pos
               runDelay:
                 makeConveyor(pos, vec2i(0, -1), 1)
         
@@ -813,7 +844,9 @@ template createMaps* =
               let pos = dir * (mapSize - 1) + (vec2i(-1, 0).rotate(rot) * (t + 1))
               rot.inc
               effectWarn(pos.vec2, life = beatSpacing())
-              capture pos:
+              block: # was `capture pos` (sugar.capture's IIFE trips a Nim 2.2 lambda-lifting ICE at this nesting depth)
+                let
+                  pos = pos
                 runDelay:
                   makeRouter(pos, alldir = true, sprite = "overflow-gate", length = 2)
 
@@ -824,7 +857,10 @@ template createMaps* =
               pos = dir * mapSize
               dir = vec2i(-1, 1).rotate(rot)
             effectWarn(pos.vec2, life = beatSpacing())
-            capture pos, dir:
+            block: # was `capture pos, dir` (sugar.capture's IIFE trips a Nim 2.2 lambda-lifting ICE at this nesting depth)
+              let
+                pos = pos
+                dir = dir
               runDelay:
                 makeArc(pos, dir, bounces = 3)
             rot.inc
@@ -835,7 +871,10 @@ template createMaps* =
           if turn mod space == 0:
             let pos = state.playerPos
             for i in 0..3:
-              capture i, pos:
+              block: # was `capture i, pos` (sugar.capture's IIFE trips a Nim 2.2 lambda-lifting ICE at this nesting depth)
+                let
+                  i = i
+                  pos = pos
                 runDelayi(i):
                   effectStrikeWave(pos.vec2, rotation = i.float32, life = beatSpacing())
                   if i == 3:
@@ -863,10 +902,11 @@ template createMaps* =
             for dir in d8():
               let pos = dir * mapSize
               effectWarn(pos.vec2, life = beatSpacing())
-              capture pos:
+              block: # was `capture pos` (sugar.capture's IIFE trips a Nim 2.2 lambda-lifting ICE at this nesting depth)
+                let
+                  pos = pos
                 runDelay:
-                  for dir in d4():
-                    makeBullet(pos, dir, "bullet-pink")
+                  bulletRing4(pos, "bullet-pink")
 
         template diagSorters =
           for i in signsi():
@@ -887,7 +927,9 @@ template createMaps* =
           if t <= mapSize:
             let pos = vec2i(0, t)
             effectWarn(pos.vec2, life = beatSpacing())
-            capture pos:
+            block: # was `capture pos` (sugar.capture's IIFE trips a Nim 2.2 lambda-lifting ICE at this nesting depth)
+              let
+                pos = pos
               runDelay:
                 makeRouter(pos, length = 1)
 

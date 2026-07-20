@@ -44,6 +44,7 @@ task release, "Release build":
   shell &"nim r -d:danger -o:build/{app} src/{app}"
 
 task web, "Deploy web build":
+  packTask()
   mkDir "build/web"
   shell &"nim c -f -d:emscripten -d:danger src/{app}.nim"
   writeFile("build/web/index.html", readFile("build/web/index.html").replace("$title$", capitalizeAscii(app)))

@@ -45,7 +45,14 @@ if defined(emscripten):
   #extra flags for smaller sizes:
   # -s ASSERTIONS=0 -DNDEBUG -s MALLOC=emmalloc
   # note: LLD_REPORT_UNDEFINED was removed in modern emscripten (now a hard link error)
-  switch("passL", "-o build/web/index.html --shell-file fau/res/shell_minimal.html -O3 -s USE_SDL=2 -s ALLOW_MEMORY_GROWTH=1 --closure 1 --preload-file assets")
+  # note: setCanvasSize is no longer auto-exported; the shell HTML calls Module.setCanvasSize()
+  # note: ALLOW_MEMORY_GROWTH is off on purpose: modern Chrome backs growable WASM memory
+  #   with a genuinely resizable ArrayBuffer, and TextDecoder.decode() (used by emscripten's
+  #   own UTF8ToString glue) refuses views over resizable buffers ("must not be resizable").
+  #   This emscripten version's getUnsharedTextDecoderView() only special-cases
+  #   SharedArrayBuffer (pthreads), not this case, so there's no in-tree fix to opt into.
+  #   A fixed-size heap avoids ever creating a resizable ArrayBuffer.
+  switch("passL", "-o build/web/index.html --shell-file fau/res/shell_minimal.html -O3 -s USE_SDL=2 -s INITIAL_MEMORY=268435456 -s EXPORTED_RUNTIME_METHODS=setCanvasSize --closure 1 --preload-file assets")
 else:
 
   when defined(Windows):
